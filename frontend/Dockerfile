@@ -6,8 +6,10 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY . .
-# Public API URL for cloud (Render free tier). Leave empty for relative /api/v1 (nginx proxy).
-ARG VITE_API_URL=
+# Default to the Render API URL so the browser talks to the public service
+# (private nginx→API proxy is unreliable on Render free tier). Override to
+# empty string for docker-compose.prod.yml nginx-proxied relative /api/v1.
+ARG VITE_API_URL=https://spotify-ai-api.onrender.com/api/v1
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
