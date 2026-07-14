@@ -1,5 +1,6 @@
 # Render Blueprint — Docker cloud deploy of Spotify AI platform.
-# Railway trial was expired; this stack maps to Render web + private services.
+# Railway trial was expired / required billing; Fly required billing.
+# Free Render plan only allows web services (not private services).
 services:
   - type: web
     name: spotify-ai-web
@@ -11,18 +12,16 @@ services:
     healthCheckPath: /
     envVars:
       - key: BACKEND_UPSTREAM
-        fromService:
-          name: spotify-ai-api
-          type: pserv
-          property: hostport
+        value: spotify-ai-api:10000
 
-  - type: pserv
+  - type: web
     name: spotify-ai-api
     runtime: docker
     plan: free
     region: singapore
     rootDir: backend
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/auth/status
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -42,11 +41,11 @@ services:
       - key: SPOTIFY_CLIENT_SECRET
         sync: false
       - key: SPOTIFY_REDIRECT_URI
-        sync: false
+        value: https://spotify-ai-web.onrender.com/api/v1/auth/callback
       - key: FRONTEND_URL
-        sync: false
+        value: https://spotify-ai-web.onrender.com
       - key: CORS_ORIGINS
-        sync: false
+        value: '["https://spotify-ai-web.onrender.com"]'
       - key: LLM_PROVIDER
         value: gemini
       - key: GOOGLE_API_KEY
@@ -67,7 +66,9 @@ services:
     plan: free
     region: singapore
     maxmemoryPolicy: noeviction
-    ipAllowList: []
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
 databases:
   - name: spotify-ai-db
