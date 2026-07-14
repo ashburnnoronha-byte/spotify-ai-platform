@@ -1,0 +1,78 @@
+# Render Blueprint — Docker cloud deploy of Spotify AI platform.
+# Railway trial was expired; this stack maps to Render web + private services.
+services:
+  - type: web
+    name: spotify-ai-web
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: frontend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_UPSTREAM
+        fromService:
+          name: spotify-ai-api
+          type: pserv
+          property: hostport
+
+  - type: pserv
+    name: spotify-ai-api
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: spotify-ai-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: spotify-ai-redis
+          type: keyvalue
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: SPOTIFY_REDIRECT_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: USE_OPENAI_EMBEDDINGS
+        value: "false"
+      - key: CHROMA_PERSIST_DIR
+        value: /app/.chroma
+      - key: DEBUG
+        value: "false"
+
+  - type: keyvalue
+    name: spotify-ai-redis
+    plan: free
+    region: singapore
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: spotify-ai-db
+    plan: free
+    region: singapore
+    postgresMajorVersion: "16"
+    ipAllowList: []
+    databaseName: spotify_ai
