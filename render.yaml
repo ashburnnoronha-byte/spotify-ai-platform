@@ -41,7 +41,7 @@ services:
       - key: SPOTIFY_CLIENT_SECRET
         sync: false
       - key: SPOTIFY_REDIRECT_URI
-        value: https://spotify-ai-web.onrender.com/api/v1/auth/callback
+        value: https://spotify-ai-api.onrender.com/api/v1/auth/callback
       - key: FRONTEND_URL
         value: https://spotify-ai-web.onrender.com
       - key: CORS_ORIGINS
